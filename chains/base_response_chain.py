@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-from langchain_core.output_parsers import StrOutputParser
-
 
 class BaseResponseChain(ABC):
     """
@@ -18,6 +16,13 @@ class BaseResponseChain(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_output_model(self):
+        """
+        Returns the Pydantic model for structured output.
+        """
+        pass
+
     def get_chain(self):
         """
         Builds and returns the RunnableSequence.
@@ -25,6 +30,7 @@ class BaseResponseChain(ABC):
 
         return (
             self.get_prompt()
-            | self.llm
-            | StrOutputParser()
+            | self.llm.with_structured_output(
+                self.get_output_model()
+            )
         )

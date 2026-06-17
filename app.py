@@ -15,63 +15,68 @@
 
 #     negative_chain = service.get_negative_chain()
 
-#     workflow = (
-
-#         RunnablePassthrough.assign(
-
-#             sentiment=lambda x: sentiment_chain.invoke(
-#                 {
-#                     "review": x["review"]
-#                 }
-#             ).sentiment
-
-#         )
-
-#         | RunnableBranch(
-
-#             (
-
-#                 lambda x: x["sentiment"] == "positive",
-
-#                 positive_chain
-
-#             ),
-
-#             (
-
-#                 lambda x: x["sentiment"] == "negative",
-
-#                 negative_chain
-
-#             ),
-
-#             neutral_chain
-
-#         )
-
-#     )
-
 #     print("=" * 60)
-#     print("      AI Review Response Generator")
+#     print("     AI Review Response System")
 #     print("=" * 60)
 
 #     review = input("\nEnter Customer Review:\n\n")
 
-#     response = workflow.invoke(
-#         {
-#             "review": review
-#         }
+#     # STEP 1: detect sentiment
+#     sentiment_result = sentiment_chain.invoke(
+#         {"review": review}
 #     )
 
-#     print("\nAI Response:\n")
+#     sentiment = sentiment_result.sentiment
 
-#     print(response)
+#     print("\n" + "=" * 60)
+#     print(f"Detected Sentiment: {sentiment.upper()}")
+#     print("=" * 60)
+
+#     # STEP 2: routing logic
+#     workflow = RunnableBranch(
+
+#         (
+#             lambda x: sentiment == "positive",
+#             positive_chain
+#         ),
+
+#         (
+#             lambda x: sentiment == "negative",
+#             negative_chain
+#         ),
+
+#         neutral_chain
+#     )
+
+#     # STEP 3: generate response
+#     result = workflow.invoke(
+#         {"review": review}
+#     )
+
+#     # STEP 4: unified output (because everything is ReviewResultModel)
+#     print("\n" + "=" * 60)
+
+#     print(f"Sentiment : {result.sentiment}")
+
+#     if result.category:
+#         print(f"Category  : {result.category}")
+
+#     if result.reason:
+#         print(f"Reason    : {result.reason}")
+
+#     if result.requires_human_support is not None:
+#         print(f"Human Support Required : {result.requires_human_support}")
+
+#     print("\nAI Response:\n")
+#     print(result.response)
 
 
 # if __name__ == "__main__":
 #     main()
-
-from langchain_core.runnables import RunnableBranch
+from langchain_core.runnables import (
+    RunnableBranch,
+    RunnableLambda,
+)
 
 from services.review_service import ReviewService
 
@@ -81,59 +86,91 @@ def main():
     service = ReviewService()
 
     sentiment_chain = service.get_sentiment_chain()
-
     positive_chain = service.get_positive_chain()
-
     neutral_chain = service.get_neutral_chain()
-
     negative_chain = service.get_negative_chain()
 
     print("=" * 60)
-    print("         AI Review Response Generator")
+    print("     AI Review Response System")
     print("=" * 60)
 
     review = input("\nEnter Customer Review:\n\n")
 
-    # Step 1: Detect sentiment
+    # STEP 1: Detect sentiment / validate review
     sentiment_result = sentiment_chain.invoke(
-        {
-            "review": review
-        }
+        {"review": review}
     )
 
-    sentiment = sentiment_result.sentiment
+    # Reject non-review inputs
+    if sentiment_result.status == "rejected":
+
+        print("\n" + "=" * 60)
+        print("INPUT REJECTED")
+        print("=" * 60)
+
+        print(f"\n{sentiment_result.message}")
+
+        return
 
     print("\n" + "=" * 60)
-    print(f"Detected Sentiment : {sentiment.upper()}")
+    print(
+        f"Detected Sentiment: "
+        f"{sentiment_result.sentiment.upper()}"
+    )
     print("=" * 60)
 
-    # Step 2: Create workflow
+    # STEP 2: Build routing workflow
     workflow = RunnableBranch(
 
         (
-            lambda x: sentiment == "positive",
-            positive_chain
+            lambda x: x["sentiment"] == "positive",
+            RunnableLambda(
+                lambda x: {"review": x["review"]}
+            )
+            | positive_chain,
         ),
 
         (
-            lambda x: sentiment == "negative",
-            negative_chain
+            lambda x: x["sentiment"] == "negative",
+            RunnableLambda(
+                lambda x: {"review": x["review"]}
+            )
+            | negative_chain,
         ),
 
-        neutral_chain
-
+        RunnableLambda(
+            lambda x: {"review": x["review"]}
+        )
+        | neutral_chain,
     )
 
-    # Step 3: Generate response
-    response = workflow.invoke(
+    # STEP 3: Generate response
+    result = workflow.invoke(
         {
-            "review": review
+            "review": review,
+            "sentiment": sentiment_result.sentiment,
         }
     )
 
-    print("\nAI Response:\n")
+    # STEP 4: Display output
+    print("\n" + "=" * 60)
 
-    print(response)
+    print(f"Sentiment : {result.sentiment}")
+
+    if result.category:
+        print(f"Category  : {result.category}")
+
+    if result.reason:
+        print(f"Reason    : {result.reason}")
+
+    if result.requires_human_support is not None:
+        print(
+            "Human Support Required : "
+            f"{result.requires_human_support}"
+        )
+
+    print("\nAI Response:\n")
+    print(result.response)
 
 
 if __name__ == "__main__":

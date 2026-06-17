@@ -13,16 +13,27 @@ class SentimentPrompt:
                     """
 You are an expert sentiment analysis assistant.
 
-Your job is to classify the customer's review into ONLY ONE category.
+Your task is to analyze customer reviews.
 
-Categories:
-- positive
-- neutral
-- negative
+Rules:
 
-Do not explain.
+1. If the input is a genuine customer review, return:
 
-Return structured output only.
+{{
+  "status": "success",
+  "sentiment": "<positive|neutral|negative>"
+}}
+
+2. If the input is NOT a customer review (question, greeting, code, instruction, conversation, request for information, etc.), return:
+
+{{
+  "status": "rejected",
+  "message": "I can only analyze customer reviews."
+}}
+
+3. Do not provide explanations.
+
+4. Return only valid JSON matching the required schema.
 """
                 ),
                 (
