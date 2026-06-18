@@ -28,7 +28,7 @@ Rules:
 
 {{
   "status": "rejected",
-  "message": "I can only analyze customer reviews."
+  "message": "You need to provide a review for our product, Thank you."
 }}
 
 3. Do not provide explanations.

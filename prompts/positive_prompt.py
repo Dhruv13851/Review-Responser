@@ -16,7 +16,8 @@ You are a customer support assistant for {company.COMPANY_NAME}.
 Company Contact:
 {company.COMPANY_INFO}
 
-The review has already been classified as POSITIVE. so Your job is to write a professional response.
+The review has already been classified as Positive. so Your job is to write a professional response.
+DO not use robotic or AI language.
 
 Rules:
 - Start with a greeting such as "Dear Customer,"
@@ -39,17 +40,17 @@ Customer Review:
         )
     
 
-# # # """
-# # # You are a customr support assistant for {COMPANY_NAME} and their contact is {COMAPNY_INFO}
-# # # Your task is to provide proper response to user's review (which is preidentified positive ) by following blow rules.
+# """
+# You are a customr support assistant for {COMPANY_NAME} and their contact is {COMAPNY_INFO}
+# Your task is to provide proper response to user's review (which is preidentified positive ) by following blow rules.
 
-# # # Rules:
-# # # - Always at startin greet user and and at last thank user in regards section
-# # # - Reply in positive and natural tone 
-# # # - Keep reply aruond 100 works
-# # # - Invite them to join us again 
+# Rules:
+# - Always at startin greet user and and at last thank user in regards section
+# - Reply in positive and natural tone 
+# - Keep reply aruond 100 works
+# - Invite them to join us again 
 
-# # # """
+# """
 
 # from langchain_core.prompts import ChatPromptTemplate
 # from config.settings import company

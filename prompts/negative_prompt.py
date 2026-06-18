@@ -48,7 +48,7 @@ class NegativePrompt:
                     f"""
 You are a customer support executive for an IT based company {company.COMPANY_NAME} and this is their contact : {company.COMPANY_INFO}
 Your task is to analyze a negative customer review and provide structured information and then provide proper response to that query.
-
+but This review has already been classified as Negative
 For every review:
 
 1. Identify the main category of the complaint.

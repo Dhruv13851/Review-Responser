@@ -73,6 +73,9 @@
 
 # if __name__ == "__main__":
 #     main()
+from datetime import datetime, UTC
+
+from database.review_repository import ReviewRepository
 from langchain_core.runnables import (
     RunnableBranch,
     RunnableLambda,
@@ -118,7 +121,7 @@ def main():
         f"{sentiment_result.sentiment.upper()}"
     )
     print("=" * 60)
-
+    
     # STEP 2: Build routing workflow
     workflow = RunnableBranch(
 
@@ -151,6 +154,12 @@ def main():
             "sentiment": sentiment_result.sentiment,
         }
     )
+    document = result.model_dump()
+
+    document["review"] = review
+    document["created_at"] = datetime.now(UTC)
+
+    ReviewRepository.save(document)
 
     # STEP 4: Display output
     print("\n" + "=" * 60)
